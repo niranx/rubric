@@ -23,7 +23,7 @@ go build
 
 ## Requirements
 
-- Go 1.25.4 or later
+- Go 1.25.5 or later
 
 ## Module
 
