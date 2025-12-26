@@ -1,4 +1,4 @@
-package main
+package output
 
 import (
 	"encoding/json"
@@ -25,7 +25,7 @@ type Response struct {
 // FormatHeaders formats and writes HTTP headers to w according to the specified format.
 // Supported formats are "plain", "table", and "json".
 // It returns an error if formatting fails.
-func FormatHeaders(w io.Writer, url string, resp *http.Response, format string) error {
+func Format(w io.Writer, url string, resp *http.Response, format string) error {
 	switch format {
 	case "plain":
 		return formatPlain(w, url, resp)

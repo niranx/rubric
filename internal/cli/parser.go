@@ -1,8 +1,9 @@
-package main
+package cli
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 )
@@ -15,16 +16,21 @@ type Config struct {
 
 // ParseArgs parses command-line arguments and returns the configuration.
 // It validates the URL format and output format, returning an error if either is invalid.
-func ParseArgs() (*Config, error) {
-	format := flag.String("format", "plain", "Output format (plain, table, json)")
+func ParseArgs(args []string) (*Config, error) {
+	fs := flag.NewFlagSet("rubric", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
 
-	flag.Usage = printUsage
+	format := fs.String("format", "plain", "Output format (plain, table, json)")
 
-	flag.Parse()
+	fs.Usage = func() {
+		printUsage(fs.Output())
+	}
 
-	args := flag.Args()
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
 
-	if len(args) < 1 {
+	if fs.NArg() < 1 {
 		return nil, fmt.Errorf("no URL provided")
 	}
 
@@ -32,7 +38,7 @@ func ParseArgs() (*Config, error) {
 		return nil, fmt.Errorf("invalid format: %s (must be plain, table, or json)", *format)
 	}
 
-	url := args[0]
+	url := fs.Arg(0)
 
 	if err := validateURL(url); err != nil {
 		return nil, fmt.Errorf("invalid URL: %w\n", err)
@@ -75,7 +81,7 @@ func validateURL(rawURL string) error {
 }
 
 // printUsage prints the usage message and examples to stderr.
-func printUsage() {
+func printUsage(w io.Writer) {
 	usage := `Usage: rubric [OPTIONS] <URL>
 
 Fetch and display HTTP response headers for the given URL.
@@ -93,5 +99,5 @@ Examples:
   rubric --format json https://example.com
 
 `
-	fmt.Fprint(os.Stderr, usage)
+	fmt.Fprint(w, usage)
 }
